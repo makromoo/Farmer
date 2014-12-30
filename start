@@ -6,33 +6,64 @@ local curLine
 
 local Farm_Map --File of Farm_Map
 local cords = {}
-local options = {["patterns"] = {["Square/Rectangle"] = {input = 9}, ["Landmarking"] = {}}, ["config"] = {"gps"}}
-function options.patterns.square.func()
-    local isTrue = true
-	for a = 0,  options.patterns.square.input*options.patterns.square.input do
+local options = {["patterns"] = {["SquareRectangle"] = {input = 9}, ["Square"] = {}, ["Landmarking"] = {}}, ["config"] = {"gps"}}
+
+function options.patterns.Square.func()
+    local dir = "right"
+	print("Enter x by x area")
+	options.patterns.Square.input = read()
+	for a = 0,  options.patterns.Square.input*options.patterns.Square.input do
+	    Gps()
 	    if turtle.detect() then
 		    local s, d = turtle.inspect()
 			if isBlock("torch") then
 			    turtle.up()
-				shell.run("forward 3")
+				turtle.forward()
+				while (turtle.detectDown()) do
+				    turtle.forward()
+					a = a -1
+				end
+				Gps()
 				turtle.down()
 			else
-			    turtle.turnRight()
+			    if (dir == "right") then
+				    turtle.turnRight()
+				else
+				    turtle.turnLeft()
+				end
 				turtle.forward()
-				turtle.turnRight()
+				Gps()
+				a = a - 1
+				if (dir == "right") then
+				    turtle.turnRight()
+					dir = "left"
+				else
+				    turtle.turnLeft()
+					dir = "right"
+				end
 			end
 		end
 		turtle.forward()
 	end
+	
+	--[[for k, v in ipairs(cords) do
+	    print(k .." ".. v)
+		local x, y, z
+		x = string.sub(v, 1, string.find(v,"|",1)-1)
+        y = string.sub(v, string.find(v,"|",1)+1, string.find(v,"/")-1)
+        z = string.sub(v, string.find(v,"/")+1)
+		shell.run("moveto", x, y, z)
+		turtle.digDown()
+		turtle.suckDown()
+	end]]
 end
 
-function options.patterns.Square/Rectangle.func()
+function options.patterns.SquareRectangle.func()
     if (turtle.detect()) then
 	    matchBlockToFunction()
 	else
 	    turtle.forward()
 	end
-    end
 	print("Enter x by x size:")
 	local input = "1 2"
     while #input ~= 1 do
@@ -58,8 +89,8 @@ function options.patterns.Square/Rectangle.func()
 				end
 			end
 		end
+    end
 end
-
 blockToActionDatabase = {["redstone_block"] = {}, ["iron_bars"] = {}, ["stone"] = {}}
 function blockToActionDatabase.redstone_block.func()
     debug("Finished")
@@ -77,8 +108,9 @@ function start()
     if (#tArgs == 1 and tArgs[1] == "yes" or not fs.exists("Farm")) then
 	    fileFolderSetup()
 	end
-	patternSelection()
-	mowLawn()
+	options.patterns.Square.func()
+	--patternSelection()
+	--mowLawn()
 end
 
 function fileFolderSetup()
@@ -102,7 +134,7 @@ function fileFolderSetup()
         Farm_Map = fs.open("Farm/Farm_Map", "r")
         curLine = Farm_Map.readLine()
 		debug("Line read")
-        if (curLine ~= nil and string.find(curLine, "true") ~= nil) then  -- IF COMPLETE IS NOT EXISNT THIS WILL. CONCETENATE STRING AND NIL
+        --[[if (curLine ~= nil and string.find(curLine, "true") ~= nil) then  -- IF COMPLETE IS NOT EXISNT THIS WILL. CONCETENATE STRING AND NIL
             debug("toMowLawn")
 			Farm_Map.close()
 			mowLawn() 
@@ -110,9 +142,7 @@ function fileFolderSetup()
 		    debug("toGenFarmMap")
 			Farm_Map.close()
             generateFarm_Map()
-        end
-    else
-        mowLawn()
+        end]]
 end
 
 function debug(msg) 
@@ -128,9 +158,13 @@ end
 ---------------------------------------------------- Pattern Selection ----------------------------------------------------------------------------------
 function patternSelection()
     local _u = 1
-    for k, v in pairs(options["patterns"]) do
+    local _v
+	print("Please enter the number corresponding to the pattern")
+	for k, v in pairs(options["patterns"]) do
 	    print(_u .." : "..k)
 		_u = _u + 1
+		_v = read()
+		
 	end
 end
 

@@ -115,7 +115,7 @@ if not x or not y or not z then
   exit()
 end
  
-rednet.open("right")
+rednet.open("left")
 --print (x..","..y..","..z)
 dir = getDir()
 curx, cury, curz = getPos()
