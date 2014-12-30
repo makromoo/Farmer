@@ -1,0 +1,134 @@
+-- ComputerCraft Turtle moving program 
+-- Needs a GPS tower (search http://computercraft.info for instructions)
+-- I use this for my 5x5farm script ()
+-- This script is not mine
+
+local tArgs = {...}
+local x = tonumber(tArgs[1])
+local y = tonumber(tArgs[2])
+local z = tonumber(tArgs[3])
+local curx, cury, curz, dir
+ 
+function getPos()
+  return gps.locate(3)
+end
+ 
+function getDir()
+  local dir, x, y, z
+  x, y, z = getPos()
+  while not turtle.forward() do
+    while not turtle.up() do
+      turtle.digUp()
+    end
+  end
+  nx, ny, nz = getPos()
+  --print ("New: "..nx..","..ny..","..nz)
+  if (x == nx) then
+    if (nz > z) then
+      dir = 2
+    else
+      dir = 0
+    end
+  else
+    if (nx > x) then
+       dir = 3
+    else
+       dir = 1
+    end
+  end
+  return dir
+end
+ 
+ 
+function setDir(toDir)
+  while toDir ~= dir do
+    turtle.turnLeft()
+    if dir == 3 then
+       dir = 0
+    else
+       dir = dir+1
+    end
+  end
+end
+ 
+function moveX()
+  distxx = x - curx
+  --print(distx)
+  if (x > curx) then
+     setDir(3)
+  else
+     setDir(1)
+  end
+  distx = math.abs(distx)
+  --print(distx)
+ 
+  for i = 1, distx do
+    while not turtle.forward() do
+      while not turtle.up() do
+        turtle.digUp()
+      end
+    end
+  end
+end
+ 
+function moveZ()
+  distz = z - curz
+  if (z < curz) then
+     setDir(0)
+  else
+     setDir(2)
+  end
+  distz = math.abs(distz)
+  -- print(distz)
+ 
+  for i = 1, distz do
+    while not turtle.forward() do
+      while not turtle.up() do
+        turtle.digUp()
+      end
+    end
+  end
+end
+ 
+function moveY()
+  disty = y - cury
+  disty = math.abs(disty)
+  if (y < cury) then
+    for i = 1, disty do
+      while not turtle.down() do
+        turtle.digDown()
+      end
+    end
+  else
+    for i = 1, disty do
+      while not turtle.up() do
+        turtle.digUp()
+      end
+    end
+  end
+end
+ 
+ 
+ 
+if not x or not y or not z then
+  print("Must supply X Y Z")
+  exit()
+end
+ 
+rednet.open("right")
+--print (x..","..y..","..z)
+dir = getDir()
+curx, cury, curz = getPos()
+distx = x - curx
+disty = y - cury
+distz = z - curz
+--print (" Current: "..curx..","..cury..","..curz)
+--print ("Distance: ",, distx,,",".. disty..","..distz)
+ 
+moveX()
+curx, cury, curz = getPos()
+moveZ()
+curx, cury, curz = getPos()
+moveY()
+curx, cury, curz = getPos()
+print("Current: "..curx..","..cury..","..curz)

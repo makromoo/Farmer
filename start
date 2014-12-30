@@ -1,0 +1,243 @@
+--Programmer: Mark Drinkwater#@
+local tArgs = {...}
+local debugB = false
+local debugNum = 1
+local curLine
+
+local Farm_Map --File of Farm_Map
+local cords = {}
+local options = {["patterns"] = {["Square/Rectangle"] = {input = 9}, ["Landmarking"] = {}}, ["config"] = {"gps"}}
+function options.patterns.square.func()
+    local isTrue = true
+	for a = 0,  options.patterns.square.input*options.patterns.square.input do
+	    if turtle.detect() then
+		    local s, d = turtle.inspect()
+			if isBlock("torch") then
+			    turtle.up()
+				shell.run("forward 3")
+				turtle.down()
+			else
+			    turtle.turnRight()
+				turtle.forward()
+				turtle.turnRight()
+			end
+		end
+		turtle.forward()
+	end
+end
+
+blockToActionDatabase = {["redstone_block"] = {}, ["iron_bars"] = {}, ["stone"] = {}}
+function blockToActionDatabase.redstone_block.func()
+    debug("Finished")
+end
+function blockToActionDatabase.iron_bars.func()
+    debug("Turtle turning right")
+	turtle.turnRight()
+end
+function blockToActionDatabase.stone.func()
+    debug("Stone - Turtle.back")
+	turtle.back()
+end
+
+function start()
+    if (#tArgs == 1 and tArgs[1] == "yes" or not fs.exists("Farm")) then
+	    fileFolderSetup()
+	end
+	patternSelection()
+	mowLawn()
+end
+
+function fileFolderSetup()
+    debug("Checking Folders")
+		if (not fs.exists("Farm")) then
+            fs.makeDir("Farm")
+			debug("Making Farm Directory")
+        end
+
+		--Does Farm_Map exist? If not create it and write "complete = false"
+		debug("Checking Files")
+        if (not fs.exists("Farm/Farm_Map")) then
+            Farm_Map = fs.open("Farm/Farm_Map", "w")
+            Farm_Map.writeLine("complete = false")
+            Farm_Map.close()
+            Farm_Map = nil
+        end
+  
+        --Read first line and if complete is true then mowLawn() else generateFarmMap()
+		debug("Reading First Line")
+        Farm_Map = fs.open("Farm/Farm_Map", "r")
+        curLine = Farm_Map.readLine()
+		debug("Line read")
+        if (curLine ~= nil and string.find(curLine, "true") ~= nil) then  -- IF COMPLETE IS NOT EXISNT THIS WILL. CONCETENATE STRING AND NIL
+            debug("toMowLawn")
+			Farm_Map.close()
+			mowLawn() 
+        else
+		    debug("toGenFarmMap")
+			Farm_Map.close()
+            generateFarm_Map()
+        end
+    else
+        mowLawn()
+end
+
+function debug(msg) 
+    if (debugB) then
+	    if msg == "Test it" then
+		    print(debugNum)
+			debugNum = debugNum + 1
+		else
+		    print(msg)
+	    end
+	end
+end
+---------------------------------------------------- Pattern Selection ----------------------------------------------------------------------------------
+function patternSelection()
+    for k, v in pairs(options["patterns"]) do
+	    
+	end
+end
+
+---------------------------------------------------- Generate Farm Map ------------------------------------------------------------------------------
+--[[:'( = Needs A LOT of work
+    :| = Rough
+	:/ = Error prone
+	-_- = Not essential but needs fixing
+    :) = Happy
+    :D = Completely Satisfied]]
+
+function mapSaving() --Complete :)
+    if (fs.exists("Farm/Farm_Map(Copy)")) then
+	    debug("Copy already exists! - Deleting!")
+		shell.run("delete Farm/Farm_Map(Copy)")
+	else
+        shell.run("copy Farm/Farm_Map Farm/Farm_Map(Copy)")
+	end
+	
+    Farm_Map = fs.open("Farm/Farm_Map", "w")
+    
+    for k, v in pairs(cords) do		
+        Farm_Map.writeLine(v)
+    end
+  
+    Farm_Map.close()
+end
+
+--Create Farm_Map
+function generateFarm_Map()      
+    if (choice == 1) then
+	    while not isBlock("redstone_block")  do
+	        debug("Inspecting")
+            local s, d = turtle.inspect()
+		
+		    if (s == true) then 
+		        local daName = string.sub(d.name, string.find(d.name, ":")+1) 
+            else
+		        debug("No block in front")
+		    end
+		
+		    Gps()
+		
+		    if (turtle.detect()) then
+		        matchBlockToFunction()
+		    else
+		        turtle.forward()
+		    end
+        end
+	elseif (choice == 2) then
+	    print("Enter x by x size:")
+		local input = "1 2"
+        while #input ~= 1 do
+		    local input = read()
+		    if (#input ~= 1) then
+		         print("Maximum of 1 arguments allowed!")
+		    end
+		end
+		for a = 1, tonumber(input) do
+		    for b = 1, tonumber(input) do
+			    if (not turtle.detect()) then
+				    turtle.forward()
+				else
+				    if (isBlock("cobblestone")) then
+					    turtle.turnRight()
+						turtle.forward()
+						turtle.turnRight()
+					else
+					    turtle.up()
+					    while turtle.detectDown() do
+						    turtle.forward()
+						end
+					end
+				end
+			end
+		end
+    end
+    mapSaving()
+end
+----------------------------------------------------------------- End of Map Generation -----------------------------------------------------------------------------------
+----------------------------------------------------------------- Useful Mapping Utility Methods    -----------------------------------------------------------------------
+--If block infront is equal to block name then return true else return false
+function isBlock(name) -- Works perfectly! :D
+    local s, d = turtle.inspect()
+	    if (s == true) then
+	        local daName = string.sub(d.name, string.find(d.name, ":")+1)
+	        debug(daName)
+            if (daName == name) then
+		        debug("ya")
+                return true
+            else
+		        debug("falses")
+                return false
+            end
+	    else
+		    debug("No block infront")
+		end
+end
+
+--Match Block to Function
+function matchBlockToFunction(k) --Couldn't work better!! :D
+    s, d = turtle.inspect()
+	if (s == true) then
+	    local daName = string.sub(d.name, string.find(d.name, ":")+1)
+		for k, v in pairs(blockToActionDatabase) do
+		    if (daName == k) then
+			    blockToActionDatabase[k].func()
+			end
+		end
+	else
+	    debug("No block infront")
+	end
+end
+
+function Gps() --Complete :)
+    local x, y, z = gps.locate()
+		if (x ~= nil and y ~= nil and z ~= nil) then
+		    debug("Block located at: " ..x.. " " ..(y-1).. " " ..z)
+            table.insert(cords, x.."|"..y.."/"..z)
+	    else
+		    debug("GPS Error!")
+		end  
+end
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Cutting of crops
+function mowLawn()
+    Farm_Map = fs.open("Farm/Farm_Map",  "r")
+  
+    local continue = true
+    while continue do
+        curLine = Farm_Map.readLine()
+	    if (not curLine == nil) then
+		    local x, y, z
+            x = string.sub(v, 1, string.find(v,"|",1)-1)
+            y = string.sub(v, string.find(v,"|",1)+1, string.find(v,"/")-1)
+            z = string.sub(v, string.find(v,"/")+1)
+		else
+		    continue = false
+	    end
+     end
+	Farm_Map.close()
+end
+
+start()
