@@ -26,6 +26,40 @@ function options.patterns.square.func()
 	end
 end
 
+function options.patterns.Square/Rectangle.func()
+    if (turtle.detect()) then
+	    matchBlockToFunction()
+	else
+	    turtle.forward()
+	end
+    end
+	print("Enter x by x size:")
+	local input = "1 2"
+    while #input ~= 1 do
+	    local input = read()
+	    if (#input ~= 1) then
+	        print("Maximum of 1 arguments allowed!")
+	    end
+	end
+	for a = 1, tonumber(input) do
+		for b = 1, tonumber(input) do
+			if (not turtle.detect()) then
+			    turtle.forward()
+			else
+				if (isBlock("cobblestone")) then
+					turtle.turnRight()
+					turtle.forward()
+					turtle.turnRight()
+				else
+					turtle.up()
+				    while turtle.detectDown() do
+					    turtle.forward()
+					end
+				end
+			end
+		end
+end
+
 blockToActionDatabase = {["redstone_block"] = {}, ["iron_bars"] = {}, ["stone"] = {}}
 function blockToActionDatabase.redstone_block.func()
     debug("Finished")
@@ -93,8 +127,10 @@ function debug(msg)
 end
 ---------------------------------------------------- Pattern Selection ----------------------------------------------------------------------------------
 function patternSelection()
+    local _u = 1
     for k, v in pairs(options["patterns"]) do
-	    
+	    print(_u .." : "..k)
+		_u = _u + 1
 	end
 end
 
@@ -125,53 +161,18 @@ end
 
 --Create Farm_Map
 function generateFarm_Map()      
-    if (choice == 1) then
-	    while not isBlock("redstone_block")  do
-	        debug("Inspecting")
-            local s, d = turtle.inspect()
+	while not isBlock("redstone_block")  do
+	    debug("Inspecting")
+        local s, d = turtle.inspect()
+	
+     	if (s == true) then 
+	        local daName = string.sub(d.name, string.find(d.name, ":")+1) 
+        else
+	        debug("No block in front")
+	    end
 		
-		    if (s == true) then 
-		        local daName = string.sub(d.name, string.find(d.name, ":")+1) 
-            else
-		        debug("No block in front")
-		    end
-		
-		    Gps()
-		
-		    if (turtle.detect()) then
-		        matchBlockToFunction()
-		    else
-		        turtle.forward()
-		    end
-        end
-	elseif (choice == 2) then
-	    print("Enter x by x size:")
-		local input = "1 2"
-        while #input ~= 1 do
-		    local input = read()
-		    if (#input ~= 1) then
-		         print("Maximum of 1 arguments allowed!")
-		    end
-		end
-		for a = 1, tonumber(input) do
-		    for b = 1, tonumber(input) do
-			    if (not turtle.detect()) then
-				    turtle.forward()
-				else
-				    if (isBlock("cobblestone")) then
-					    turtle.turnRight()
-						turtle.forward()
-						turtle.turnRight()
-					else
-					    turtle.up()
-					    while turtle.detectDown() do
-						    turtle.forward()
-						end
-					end
-				end
-			end
-		end
-    end
+	    Gps()
+	end
     mapSaving()
 end
 ----------------------------------------------------------------- End of Map Generation -----------------------------------------------------------------------------------
